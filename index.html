@@ -20,8 +20,9 @@ nav button{background:none;color:var(--mu);border-radius:0;margin:0;padding:12px
 .g{color:#d4a017}.sv{color:#9aa}.br{color:#c07a3a}
 table{width:100%;border-collapse:collapse}td,th{padding:6px 4px;text-align:left;border-bottom:1px solid var(--bd)}
 </style></head><body>
-<div id="app"></div>
+<div id="app" style="padding:20px">Cargando FC Career Manager…</div>
 <script>
+window.onerror=function(m,u,l){var a=document.getElementById("app");if(a)a.innerHTML="<pre style=\"padding:16px;white-space:pre-wrap\">Error: "+m+" (línea "+l+")</pre>"};
 var K='fccm_v1',db={careers:[],cur:null},tab='plantilla',sel=null;
 try{var r=localStorage.getItem(K);if(r)db=JSON.parse(r)}catch(e){}
 function save(){try{localStorage.setItem(K,JSON.stringify(db))}catch(e){}}
