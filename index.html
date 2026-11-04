@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FC Career Manager</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--tx:#14181c;--mu:#667;--ac:#0a8f5b;--bd:#dde2e7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1114;--card:#1a1f25;--tx:#eef1f4;--mu:#9aa4ae;--bd:#2c343c}}
+:root[data-theme="dark"]{--bg:#0e1114;--card:#1a1f25;--tx:#eef1f4;--mu:#9aa4ae;--bd:#2c343c}
+*{box-sizing:border-box}html,body{margin:0}body{background:var(--bg);color:var(--tx);font:15px system-ui,sans-serif;padding-bottom:70px}
+.hero{background:linear-gradient(135deg,var(--ac),#064);color:#fff;padding:22px 16px}
+.hero h1{margin:0;font-size:22px}.hero p{margin:4px 0 0;opacity:.9}
+.wrap{padding:12px;max-width:640px;margin:auto}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:10px}
+button,input,select,textarea{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:9px;width:100%;margin:3px 0}
+button{background:var(--ac);color:#fff;border:0;font-weight:600;cursor:pointer}button.s{background:var(--bd);color:var(--tx)}button.d{background:#c33}
+.row{display:flex;gap:6px}.row>*{flex:1}.sm{font-size:13px;color:var(--mu)}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px);overflow-x:auto}
+nav button{background:none;color:var(--mu);border-radius:0;margin:0;padding:12px 8px;white-space:nowrap;width:auto;flex:1}nav button.on{color:var(--ac);border-top:2px solid var(--ac)}
+.badge{display:inline-block;background:var(--ac);color:#fff;border-radius:6px;padding:1px 7px;font-size:12px}
+.g{color:#d4a017}.sv{color:#9aa}.br{color:#c07a3a}
+table{width:100%;border-collapse:collapse}td,th{padding:6px 4px;text-align:left;border-bottom:1px solid var(--bd)}
+</style></head><body>
+<div id="app"></div>
+<script>
+var K='fccm_v1',db={careers:[],cur:null},tab='plantilla',sel=null;
+try{var r=localStorage.getItem(K);if(r)db=JSON.parse(r)}catch(e){}
+function save(){try{localStorage.setItem(K,JSON.stringify(db))}catch(e){}}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function C(){return db.careers.find(function(c){return c.id===db.cur})}
+function tot(p){var t={pj:0,g:0,a:0,pc:0};(p.hist||[]).concat([p.st]).forEach(function(s){for(var k in t)t[k]+=+s[k]||0});return t}
+function $(id){return document.getElementById(id).value}
+function go(t){tab=t;sel=null;R()}
+function newCareer(){var n=$('club');if(!n)return;db.careers.push({id:Date.now(),club:n,coach:$('coach'),country:$('country'),season:$('season')||'2025/26',players:[],titles:[],finals:[],summ:[]});db.cur=db.careers[db.careers.length-1].id;save();tab='plantilla';R()}
+function openC(id){db.cur=id;save();tab='plantilla';R()}
+function menu(){db.cur=null;save();R()}
+function delC(id){if(confirm('¿Borrar esta carrera?')){db.careers=db.careers.filter(function(c){return c.id!==id});db.cur=null;save();R()}}
+function addP(){var c=C(),n=$('pn');if(!n)return;c.players.push({id:Date.now(),name:n,nat:$('pnat'),age:+$('page')||18,pos:$('ppos'),num:$('pnum'),bio:$('pbio'),cantera:document.getElementById('pcan').checked,sold:false,st:{pj:0,g:0,a:0,pc:0},hist:[]});save();R()}
+function stP(id){var c=C(),p=c.players.find(function(x){return x.id===id});['pj','g','a','pc'].forEach(function(k){p.st[k]=+$('s_'+k)||0});save();checkRec(c);R()}
+function sell(id,v){C().players.find(function(x){return x.id===id}).sold=v;save();R()}
+function delP(id){if(confirm('¿Eliminar jugador?')){var c=C();c.players=c.players.filter(function(x){return x.id!==id});sel=null;save();R()}}
+function addT(){var c=C();if(!$('tc'))return;c.titles.push({comp:$('tc'),season:$('ts')||c.season});save();R()}
+function addF(){var c=C();if(!$('fc'))return;c.finals.push({comp:$('fc'),season:$('fs')||c.season,rival:$('fr'),score:$('fsc'),res:$('fres')});save();R()}
+function delI(k,i){C()[k].splice(i,1);save();R()}
+function newSeason(){var c=C(),n=$('ns');if(!n)return;c.summ.push({season:c.season,txt:$('nsum')});c.players.forEach(function(p){p.hist.push(Object.assign({season:c.season},p.st));p.st={pj:0,g:0,a:0,pc:0};p.age++});c.season=n;save();R()}
+function checkRec(c){c.rec=c.rec||{};[['g','Goles en una temporada'],['a','Asistencias en una temporada'],['pj','Partidos en una temporada']].forEach(function(m){c.players.forEach(function(p){var v=+p.st[m[0]]||0,r=c.rec[m[0]];if(v>0&&(!r||v>r.v))c.rec[m[0]]={v:v,who:p.name,season:c.season,l:m[1]}})})}
+function exportD(){document.getElementById('bk').value=JSON.stringify(db);document.getElementById('bk').select();try{document.execCommand('copy');alert('Copiado. Pegalo en tus notas o mandátelo por WhatsApp.')}catch(e){}}
+function importD(){try{var d=JSON.parse($('bk'));if(d.careers){db=d;save();R()}}catch(e){alert('Datos inválidos')}}
+function theme(v){document.documentElement.setAttribute('data-theme',v)}
+function top(c,k){return c.players.map(function(p){return{p:p,v:tot(p)[k]}}).filter(function(x){return x.v>0}).sort(function(a,b){return b.v-a.v}).slice(0,10)}
+function rank(list){var pos=0,prev=null,out='';list.forEach(function(x,i){if(x.v!==prev){pos=i+1;prev=x.v}var cl=pos==1?'g':pos==2?'sv':pos==3?'br':'';out+='<tr><td class="'+cl+'"><b>'+pos+'</b></td><td>'+esc(x.p.name)+(x.p.cantera?' 🌱':'')+(x.p.sold?' <span class="sm">(ex)</span>':'')+'</td><td><b>'+x.v+'</b></td></tr>'});return'<table>'+(out||'<tr><td class="sm">Sin datos</td></tr>')+'</table>'}
+function R(){var a=document.getElementById('app'),c=C();if(!c){var h='<div class="hero"><h1>⚽ FC Career Manager</h1><p>Tu historia como DT en FC 25</p></div><div class="wrap"><div class="card"><b>Nueva carrera</b><input id="club" placeholder="Club"><input id="country" placeholder="País / Liga"><input id="coach" placeholder="Nombre del DT"><input id="season" placeholder="Temporada (2025/26)"><button onclick="newCareer()">Crear carrera</button></div>';db.careers.forEach(function(x){h+='<div class="card"><b>'+esc(x.club)+'</b><div class="sm">DT '+esc(x.coach)+' · '+esc(x.season)+' · '+x.titles.length+' títulos</div><div class="row"><button onclick="openC('+x.id+')">Continuar</button><button class="d" onclick="delC('+x.id+')">Borrar</button></div></div>'});a.innerHTML=h+'<div class="card"><b>Copia de seguridad</b><textarea id="bk" rows="3" placeholder="Pegá acá tus datos para importar"></textarea><div class="row"><button class="s" onclick="exportD()">Exportar (copiar)</button><button class="s" onclick="importD()">Importar</button></div><div class="row"><button class="s" onclick="theme(\'light\')">Claro</button><button class="s" onclick="theme(\'dark\')">Oscuro</button></div></div></div>';return}
+var h='<div class="hero"><h1>'+esc(c.club)+'</h1><p>DT '+esc(c.coach)+' · Temporada '+esc(c.season)+'</p><p>🏆 '+c.titles.length+' títulos · 🏟️ '+c.finals.length+' finales</p></div><div class="wrap">',act=c.players.filter(function(p){return!p.sold});
+if(tab=='plantilla'){if(sel){var p=c.players.find(function(x){return x.id===sel}),t=tot(p);h+='<div class="card"><b>'+esc(p.name)+(p.cantera?' 🌱':'')+'</b><div class="sm">'+esc(p.pos)+' · '+esc(p.nat)+' · '+p.age+' años · #'+esc(p.num)+'</div><p>'+esc(p.bio)+'</p><b>Temporada actual</b><div class="row"><div>PJ<input id="s_pj" type="number" value="'+p.st.pj+'"></div><div>G<input id="s_g" type="number" value="'+p.st.g+'"></div><div>A<input id="s_a" type="number" value="'+p.st.a+'"></div><div>PC<input id="s_pc" type="number" value="'+p.st.pc+'"></div></div><button onclick="stP('+p.id+')">Guardar estadísticas</button><p class="sm">Histórico: '+t.pj+' PJ · '+t.g+' G · '+t.a+' A · '+t.pc+' PC</p>'+(p.hist.length?'<table>'+p.hist.map(function(s){return'<tr><td>'+esc(s.season)+'</td><td>'+s.pj+'</td><td>'+s.g+'</td><td>'+s.a+'</td><td>'+s.pc+'</td></tr>'}).join('')+'</table>':'')+'<div class="row"><button class="s" onclick="sell('+p.id+','+!p.sold+')">'+(p.sold?'Recomprar':'Vender')+'</button><button class="d" onclick="delP('+p.id+')">Eliminar</button></div><button class="s" onclick="go(\'plantilla\')">← Volver</button></div>'}else{h+='<div class="card"><b>Agregar jugador</b><input id="pn" placeholder="Nombre"><div class="row"><input id="pnat" placeholder="Nacionalidad"><input id="page" type="number" placeholder="Edad"></div><div class="row"><input id="ppos" placeholder="Posición"><input id="pnum" placeholder="N°"></div><textarea id="pbio" rows="2" placeholder="Biografía (opcional)"></textarea><label><input id="pcan" type="checkbox" style="width:auto"> 🌱 Canterano</label><button onclick="addP()">Agregar</button></div>';act.forEach(function(p){h+='<div class="card" onclick="sel='+p.id+';R()"><b>'+esc(p.name)+(p.cantera?' 🌱':'')+'</b> <span class="badge">'+esc(p.pos)+'</span><div class="sm">#'+esc(p.num)+' · '+esc(p.nat)+' · '+p.age+' años</div></div>'})}}
+if(tab=='top'){[['pj','Más partidos'],['g','Goleadores'],['a','Asistentes']].forEach(function(m){h+='<div class="card"><b>'+m[1]+'</b>'+rank(top(c,m[0]))+'</div>'});var ids={};['pj','g','a'].forEach(function(k){top(c,k).forEach(function(x){ids[x.p.id]=1})});var ex=c.players.filter(function(p){return p.sold&&!ids[p.id]});h+='<div class="card"><b>Exjugadores</b>'+(ex.map(function(p){var t=tot(p);return'<div onclick="sel='+p.id+';tab=\'plantilla\';R()">'+esc(p.name)+' <span class="sm">'+t.pj+' PJ · '+t.g+' G · '+t.a+' A</span></div>'}).join('')||'<div class="sm">Ninguno</div>')+'</div>'}
+if(tab=='titulos'){h+='<div class="card"><b>Nuevo título ganado</b><input id="tc" placeholder="Competición"><input id="ts" placeholder="Temporada" value="'+esc(c.season)+'"><button onclick="addT()">Agregar</button></div>';c.titles.forEach(function(t,i){h+='<div class="card">🏆 <b>'+esc(t.comp)+'</b> · '+esc(t.season)+' <button class="s" style="width:auto" onclick="delI(\'titles\','+i+')">✕</button></div>'});h+='<div class="card"><b>Nueva final</b><input id="fc" placeholder="Competición"><input id="fs" placeholder="Temporada" value="'+esc(c.season)+'"><input id="fr" placeholder="Rival"><input id="fsc" placeholder="Marcador (2-1)"><select id="fres"><option>Ganada</option><option>Perdida</option></select><button onclick="addF()">Agregar final</button></div>';c.finals.forEach(function(f,i){h+='<div class="card">'+esc(f.season)+' · '+esc(f.comp)+'<br><b>'+esc(c.club)+' '+esc(f.score)+' '+esc(f.rival)+'</b> · '+f.res+' <button class="s" style="width:auto" onclick="delI(\'finals\','+i+')">✕</button></div>'})}
+if(tab=='records'){var rr=c.rec||{},ks=Object.keys(rr);h+='<div class="card"><b>Récords del club</b>'+(ks.map(function(k){var r=rr[k];return'<p><b>'+r.l+'</b><br>'+esc(r.who)+' · '+r.v+' · '+esc(r.season)+'</p>'}).join('')||'<p class="sm">Se detectan al guardar estadísticas.</p>')+'</div>'}
+if(tab=='temporada'){h+='<div class="card"><b>Nueva temporada</b><p class="sm">Suma 1 año a cada jugador, guarda las estadísticas en el histórico y las reinicia.</p><textarea id="nsum" rows="3" placeholder="Resumen de la temporada '+esc(c.season)+'"></textarea><input id="ns" placeholder="Nombre (ej. 2026/27)"><button onclick="newSeason()">Comenzar</button></div>';c.summ.slice().reverse().forEach(function(s){h+='<div class="card"><b>'+esc(s.season)+'</b><p>'+esc(s.txt)+'</p></div>'})}
+if(tab=='mas'){h+='<div class="card"><textarea id="bk" rows="3" placeholder="Pegá acá para importar"></textarea><div class="row"><button class="s" onclick="exportD()">Exportar todo</button><button class="s" onclick="importD()">Importar</button></div><div class="row"><button class="s" onclick="theme(\'light\')">Claro</button><button class="s" onclick="theme(\'dark\')">Oscuro</button></div><button class="s" onclick="menu()">Mis carreras</button></div>'}
+h+='</div><nav>';[['plantilla','👥 Plantilla'],['top','📊 Top 10'],['titulos','🏆 Títulos'],['records','🥇 Récords'],['temporada','📅 Temporada'],['mas','⚙️ Más']].forEach(function(t){h+='<button class="'+(tab==t[0]?'on':'')+'" onclick="go(\''+t[0]+'\')">'+t[1]+'</button>'});a.innerHTML=h+'</nav>'}
+R();
+</script></body></html>
